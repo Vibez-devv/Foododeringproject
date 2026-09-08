@@ -1,0 +1,361 @@
+/* ================================
+   CART PAGE
+================================ */
+
+.cart-page {
+  min-height: 100vh;
+  background: #fff8f0;
+  padding: 50px 7%;
+  font-family: Arial, sans-serif;
+}
+
+
+/* ================================
+   CART HEADER
+================================ */
+
+.cart-header {
+  margin-bottom: 35px;
+}
+
+.cart-header h1 {
+  font-size: 42px;
+  color: #111827;
+  margin: 15px 0 5px;
+}
+
+.cart-header p {
+  color: #64748b;
+  font-size: 18px;
+}
+
+.back-to-restaurants {
+  color: #ff6b00;
+  text-decoration: none;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.back-to-restaurants:hover {
+  color: #e85d00;
+}
+
+
+/* ================================
+   CART CONTAINER
+================================ */
+
+.cart-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+
+/* ================================
+   CART ITEMS
+================================ */
+
+.cart-items {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.cart-item {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 22px;
+  padding: 28px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+
+/* ================================
+   FOOD IMAGE
+================================ */
+
+.cart-item-image {
+  width: 175px;
+  height: 145px;
+  object-fit: cover;
+  border-radius: 18px;
+  flex-shrink: 0;
+}
+
+
+/* ================================
+   FOOD DETAILS
+================================ */
+
+.cart-item-details {
+  flex: 1;
+}
+
+.cart-item-details h2 {
+  margin: 0 0 8px;
+  font-size: 30px;
+  color: #111827;
+}
+
+.item-price {
+  margin: 0 0 12px;
+  font-size: 19px;
+  color: #64748b;
+}
+
+
+/* ================================
+   QUANTITY
+================================ */
+
+.quantity-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.quantity-control span {
+  font-size: 20px;
+  font-weight: 700;
+  min-width: 25px;
+  text-align: center;
+}
+
+.quantity-btn {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 10px;
+  background: #ff6b00;
+  color: white;
+  cursor: pointer;
+  font-size: 15px;
+  transition: 0.2s;
+}
+
+.quantity-btn:hover {
+  background: #e85d00;
+  transform: translateY(-2px);
+}
+
+
+/* ================================
+   RIGHT SIDE OF ITEM
+================================ */
+
+.cart-item-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 18px;
+}
+
+.cart-item-right strong {
+  font-size: 22px;
+  color: #111827;
+}
+
+
+/* ================================
+   REMOVE BUTTON
+================================ */
+
+.remove-btn {
+  border: none;
+  background: #fff0ed;
+  color: #e53935;
+  padding: 10px 15px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.remove-btn:hover {
+  background: #ffe0dc;
+  transform: translateY(-2px);
+}
+
+
+/* ================================
+   CLEAR CART
+================================ */
+
+.clear-cart-btn {
+  border: none;
+  background: #111827;
+  color: white;
+  padding: 15px 25px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.clear-cart-btn:hover {
+  background: #ef4444;
+}
+
+
+/* ================================
+   ORDER SUMMARY
+================================ */
+
+.cart-summary {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 22px;
+  padding: 35px;
+  position: sticky;
+  top: 30px;
+}
+
+.cart-summary h2 {
+  margin: 0 0 35px;
+  font-size: 32px;
+  color: #111827;
+}
+
+
+/* ================================
+   SUMMARY ROW
+================================ */
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.summary-row span {
+  color: #64748b;
+  font-size: 18px;
+}
+
+.summary-row strong {
+  color: #111827;
+  font-size: 18px;
+}
+
+
+/* ================================
+   LINE
+================================ */
+
+.summary-line {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 30px 0;
+}
+
+
+/* ================================
+   TOTAL
+================================ */
+
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.summary-total span {
+  font-size: 23px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.summary-total strong {
+  font-size: 27px;
+  color: #ff6b00;
+}
+
+
+/* ================================
+   CHECKOUT BUTTON
+================================ */
+
+.checkout-btn {
+  width: 100%;
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  box-sizing: border-box;
+
+  background: #ff6b00;
+  color: white;
+
+  padding: 17px 20px;
+  border-radius: 12px;
+
+  font-size: 18px;
+  font-weight: 700;
+
+  transition: 0.2s;
+}
+
+.checkout-btn:hover {
+  background: #e85d00;
+  transform: translateY(-2px);
+}
+
+
+/* ================================
+   EMPTY CART
+================================ */
+
+.empty-cart {
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.empty-cart-icon {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: #fff0e5;
+  color: #ff6b00;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 42px;
+  margin-bottom: 25px;
+}
+
+.empty-cart h1 {
+  font-size: 38px;
+  margin-bottom: 10px;
+}
+
+.empty-cart p {
+  color: #64748b;
+  font-size: 18px;
+  margin-bottom: 25px;
+}
+
+.browse-food-btn {
+  background: #ff6b00;
+  color: white;
+  text-decoration: none;
+  padding: 15px 25px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.browse-food-btn:hover {
+  background: #e85d00;
+}

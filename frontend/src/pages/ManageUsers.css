@@ -1,0 +1,36 @@
+.manage-users-page {
+  min-height: 100vh;
+  background: #fff8ef;
+}
+
+.manage-users-container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 50px auto;
+}
+
+.manage-users-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.users-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.user-card {
+  background: white;
+  padding: 25px;
+  border-radius: 20px;
+  border: 1px solid #e5e7eb;
+}
+
+.delete-user-btn {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
