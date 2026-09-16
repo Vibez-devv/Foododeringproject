@@ -10,7 +10,7 @@ import {
   faPlus,
 } from "@fortawesome/free-solid-svg-icons";
 
-import { useCart } from "../contexts/CartContext";
+import { useCart } from "../contexts/Cartcontext";
 
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -23,7 +23,7 @@ import pizza from "../assets/images/pizza.jpg";
 import wings from "../assets/images/wings.jpg";
 import cake from "../assets/images/cake.jpg";
 import salad from "../assets/images/salad.jpg";
-// import { useCart } from "../contexts/CartContext";
+// import { useCart } from "../contexts/Cartcontext";
 
 function RestaurantDetails() {
 

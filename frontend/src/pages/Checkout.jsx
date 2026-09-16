@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { FaMapMarkerAlt, FaCreditCard, FaLock } from "react-icons/fa";
-import { useCart } from "../contexts/CartContext";
+import { useCart } from "../contexts/Cartcontext";
 import "./Checkout.css";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";

@@ -12,7 +12,7 @@ import {
   faUtensils,
 } from "@fortawesome/free-solid-svg-icons";
 
-import { useCart } from "../contexts/CartContext";
+import { useCart } from "../contexts/Cartcontext";
 
 import "./Cart.css";
 
