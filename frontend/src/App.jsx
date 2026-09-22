@@ -13,6 +13,7 @@ import ManageUsers from "./pages/ManageUsers";
 import ManageOrders from "./pages/ManageOrders";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import Orders from "./pages/Orders";
 function App() {
   return (
     <CartProvider>
@@ -41,6 +42,7 @@ function App() {
           <Route path="/login" element={<Login />} />
 
           <Route path="/signup" element={<Signup />} />
+          <Route path="/orders" element={<Orders />} />
         </Routes>
       </BrowserRouter>
     </CartProvider>

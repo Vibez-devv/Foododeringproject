@@ -1,0 +1,156 @@
+.orders-page {
+  min-height: 70vh;
+  padding: 80px 20px;
+  background: #f8fafc;
+}
+
+.orders-container {
+  width: min(1100px, 92%);
+  margin: 0 auto;
+}
+
+.orders-header {
+  text-align: center;
+  margin-bottom: 45px;
+}
+
+.orders-header h1 {
+  margin: 0 0 10px;
+  font-size: clamp(2rem, 5vw, 3rem);
+  color: #0f172a;
+}
+
+.orders-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 1rem;
+}
+
+.orders-empty {
+  max-width: 650px;
+  margin: 0 auto;
+  padding: 60px 30px;
+  text-align: center;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 10px 35px rgba(15, 23, 42, 0.08);
+}
+
+.orders-empty i {
+  font-size: 55px;
+  color: #f97316;
+  margin-bottom: 20px;
+}
+
+.orders-empty h2 {
+  margin: 0 0 12px;
+  color: #0f172a;
+  font-size: 1.7rem;
+}
+
+.orders-empty p {
+  max-width: 500px;
+  margin: 0 auto 28px;
+  color: #64748b;
+  line-height: 1.7;
+}
+
+.orders-btn {
+  display: inline-block;
+  padding: 13px 24px;
+  border-radius: 10px;
+  background: #f97316;
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 600;
+  transition: 0.3s ease;
+}
+
+.orders-btn:hover {
+  background: #ea580c;
+  transform: translateY(-2px);
+}
+
+/* Tablet */
+@media (max-width: 1023px) {
+  .orders-page {
+    padding: 65px 20px;
+  }
+
+  .orders-empty {
+    padding: 50px 25px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+  .orders-page {
+    padding: 50px 15px;
+  }
+
+  .orders-container {
+    width: 100%;
+  }
+
+  .orders-header {
+    margin-bottom: 30px;
+  }
+
+  .orders-header h1 {
+    font-size: 2rem;
+  }
+
+  .orders-empty {
+    padding: 45px 20px;
+    border-radius: 16px;
+  }
+
+  .orders-empty i {
+    font-size: 45px;
+  }
+
+  .orders-empty h2 {
+    font-size: 1.4rem;
+  }
+
+  .orders-empty p {
+    font-size: 0.95rem;
+  }
+
+  .orders-btn {
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+/* Small phones */
+@media (max-width: 480px) {
+  .orders-page {
+    padding: 40px 12px;
+  }
+
+  .orders-header h1 {
+    font-size: 1.7rem;
+  }
+
+  .orders-header p {
+    font-size: 0.9rem;
+  }
+
+  .orders-empty {
+    padding: 40px 16px;
+  }
+
+  .orders-empty i {
+    font-size: 40px;
+  }
+
+  .orders-empty h2 {
+    font-size: 1.25rem;
+  }
+
+  .orders-empty p {
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+}
