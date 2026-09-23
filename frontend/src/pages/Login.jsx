@@ -30,7 +30,7 @@ function Login() {
 
     try {
       const response = await fetch(
-        "https://foododeringproject.onrender.com",
+        "https://foododeringproject.onrender.com/api/auth/login",
         {
           method: "POST",
           headers: {
