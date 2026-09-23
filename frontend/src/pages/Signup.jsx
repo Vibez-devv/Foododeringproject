@@ -7,14 +7,6 @@ import "./Signup.css";
 function Signup() {
   const navigate = useNavigate();
 
-  // const [formData, setFormData] = useState({
-  //   firstName: "",
-  //   lastName: "",
-  //   phone: "",
-  //   password: "",
-  //   confirmPassword: "",
-  // });
-
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -26,6 +18,9 @@ function Signup() {
 
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const API_URL =
+    import.meta.env.VITE_API_URL || "http://localhost:8000";
 
   const handleChange = (e) => {
     setFormData({
@@ -46,18 +41,11 @@ function Signup() {
     setMessage("");
 
     try {
-      const response = await fetch("http://localhost:8000/api/auth/register", {
+      const response = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        // body: JSON.stringify({
-        //   name: `${formData.firstName} ${formData.lastName}`,
-        //   phone: formData.phone,
-        //   password: formData.password,
-        //   email: `${formData.firstName.toLowerCase()}@example.com`,
-        // }),
-
         body: JSON.stringify({
           name: `${formData.firstName} ${formData.lastName}`,
           email: formData.email,
@@ -78,7 +66,15 @@ function Signup() {
         navigate("/login");
       }, 1000);
     } catch (error) {
-      setMessage(error.message);
+      console.error("Signup error:", error);
+
+      if (error.message === "Failed to fetch") {
+        setMessage(
+          "Unable to connect to the server. Please try again."
+        );
+      } else {
+        setMessage(error.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -90,16 +86,22 @@ function Signup() {
 
       <main className="signup-page">
         <div className="signup-card">
-          <div className="signup-header">
-            <h1>Create Accouunt</h1>
 
-            <p>Join Vibez(FoodHub) and start odering your best meals</p>
+          <div className="signup-header">
+            <h1>Create Account</h1>
+
+            <p>
+              Join Vibez(FoodHub) and start ordering your best meals
+            </p>
           </div>
 
           <form className="signup-form" onSubmit={handleSubmit}>
             <div className="form-row">
+
               <div className="form-group">
-                <label htmlFor="firstName">First Name</label>
+                <label htmlFor="firstName">
+                  First Name
+                </label>
 
                 <input
                   type="text"
@@ -113,7 +115,9 @@ function Signup() {
               </div>
 
               <div className="form-group">
-                <label htmlFor="lastName">Last Name</label>
+                <label htmlFor="lastName">
+                  Last Name
+                </label>
 
                 <input
                   type="text"
@@ -127,7 +131,9 @@ function Signup() {
               </div>
 
               <div className="form-group">
-                <label htmlFor="email">Email Address</label>
+                <label htmlFor="email">
+                  Email Address
+                </label>
 
                 <input
                   type="email"
@@ -141,7 +147,9 @@ function Signup() {
               </div>
 
               <div className="form-group">
-                <label htmlFor="phone">Phone Number</label>
+                <label htmlFor="phone">
+                  Phone Number
+                </label>
 
                 <input
                   type="tel"
@@ -155,7 +163,9 @@ function Signup() {
               </div>
 
               <div className="form-group">
-                <label htmlFor="password">Password</label>
+                <label htmlFor="password">
+                  Password
+                </label>
 
                 <input
                   type="password"
@@ -169,7 +179,9 @@ function Signup() {
               </div>
 
               <div className="form-group">
-                <label htmlFor="confirmPassword">Confirm Password</label>
+                <label htmlFor="confirmPassword">
+                  Confirm Password
+                </label>
 
                 <input
                   type="password"
@@ -183,28 +195,48 @@ function Signup() {
               </div>
 
               <label className="terms">
-                <input type="checkbox" required />
+                <input
+                  type="checkbox"
+                  required
+                />
 
-                <span>I agree to the terms and conditions</span>
+                <span>
+                  I agree to the terms and conditions
+                </span>
               </label>
 
-              {message && <p className="signup-message">{message}</p>}
+              {message && (
+                <p
+                  className={`signup-message ${
+                    message.includes("successfully")
+                      ? "success"
+                      : "error"
+                  }`}
+                >
+                  {message}
+                </p>
+              )}
 
               <button
                 type="submit"
                 className="signup-submit"
                 disabled={loading}
               >
-                {loading ? "Creating Account..." : "Create Your Food Account"}
+                {loading
+                  ? "Creating Account..."
+                  : "Create Your Food Account"}
               </button>
+
             </div>
           </form>
 
           <div className="login-link">
             <p>
-              Already have food account <Link to="/login">Login</Link>
+              Already have a food account{" "}
+              <Link to="/login">Login</Link>
             </p>
           </div>
+
         </div>
       </main>
 
