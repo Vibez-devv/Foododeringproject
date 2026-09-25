@@ -1,14 +1,14 @@
-import "./Cart.css";
+import "./AddFood.css";
 
 function Cart({
-  order,
+  order = [],
   onClose,
   onUpdateQuantity,
   onRemove,
   onClear,
 }) {
   const totalItems = order.reduce(
-    (total, drink) => total + drink.quantity,
+    (total, food) => total + food.quantity,
     0
   );
 
@@ -22,7 +22,7 @@ function Cart({
 
           <div>
             <p className="cart-label">
-              BAMALICIOUS KITCHEN
+              FOODORDERINGAPP
             </p>
 
             <h2>Your Order</h2>
@@ -52,8 +52,8 @@ function Cart({
               <h3>Your order is empty</h3>
 
               <p>
-                You haven't added any drinks yet.
-                Choose your favourite drink to
+                You haven't added any food yet.
+                Choose your favourite meal to
                 start your order.
               </p>
 
@@ -63,7 +63,7 @@ function Cart({
               >
                 <i className="fa-solid fa-arrow-left"></i>
 
-                Browse Drinks
+                Browse Food
               </button>
 
             </div>
@@ -74,19 +74,19 @@ function Cart({
 
               <div className="cart-items">
 
-                {order.map((drink, index) => (
+                {order.map((food, index) => (
 
                   <div
                     className="cart-item"
-                    key={`${drink.name}-${drink.size}-${index}`}
+                    key={`${food.name}-${food.size || "default"}-${index}`}
                   >
 
                     {/* IMAGE */}
                     <div className="cart-item-image">
 
                       <img
-                        src={drink.image}
-                        alt={drink.name}
+                        src={food.image}
+                        alt={food.name}
                       />
 
                     </div>
@@ -99,12 +99,14 @@ function Cart({
                         <div>
 
                           <h3>
-                            {drink.name}
+                            {food.name}
                           </h3>
 
-                          <span>
-                            {drink.size}
-                          </span>
+                          {food.size && (
+                            <span>
+                              {food.size}
+                            </span>
+                          )}
 
                         </div>
 
@@ -113,7 +115,7 @@ function Cart({
                           onClick={() =>
                             onRemove(index)
                           }
-                          aria-label={`Remove ${drink.name}`}
+                          aria-label={`Remove ${food.name}`}
                         >
                           <i className="fa-solid fa-trash"></i>
                         </button>
@@ -138,7 +140,7 @@ function Cart({
                           </button>
 
                           <span>
-                            {drink.quantity}
+                            {food.quantity}
                           </span>
 
                           <button
@@ -156,8 +158,8 @@ function Cart({
                         </div>
 
                         <span className="item-count">
-                          {drink.quantity}{" "}
-                          {drink.quantity === 1
+                          {food.quantity}{" "}
+                          {food.quantity === 1
                             ? "item"
                             : "items"}
                         </span>
@@ -196,7 +198,7 @@ function Cart({
             <div className="cart-total">
 
               <span>
-                Total Drinks
+                Total Food Items
               </span>
 
               <strong>
