@@ -112,7 +112,7 @@ function Checkout() {
   // Verify payment with our backend
   const verifyPayment = async (reference) => {
     try {
-      const response = await fetch("http://localhost:8000/api/payment/verify", {
+      const response = await fetch("https://foododeringproject.onrender.com/api/payment/verify", {
         method: "POST",
 
         headers: {
