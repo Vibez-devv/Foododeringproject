@@ -1,38 +1,210 @@
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import React, { useEffect, useState } from "react";
+import { FaBox, FaCreditCard, FaTruck } from "react-icons/fa";
 import "./Orders.css";
 
 function Orders() {
-  return (
-    <>
-      <Navbar />
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-      <main className="orders-page">
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:8000/api/orders"
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.message || "Failed to load orders"
+          );
+        }
+
+        setOrders(data.orders || []);
+      } catch (error) {
+        console.error("Fetch orders error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="orders-page">
         <div className="orders-container">
-          <div className="orders-header">
-            <h1>My Orders</h1>
-            <p>Track and manage your food orders.</p>
-          </div>
+          <h1>My Orders</h1>
+          <p>Loading your orders...</p>
+        </div>
+      </div>
+    );
+  }
 
-          <div className="orders-empty">
-            <i className="fa-solid fa-bag-shopping"></i>
+  return (
+    <div className="orders-page">
+      <div className="orders-container">
 
-            <h2>No Orders Yet</h2>
+        <div className="orders-header">
+          <h1>My Orders</h1>
+
+          <p>
+            View your previous food orders and
+            payment details.
+          </p>
+        </div>
+
+        {orders.length === 0 ? (
+          <div className="no-orders">
+            <FaBox />
+
+            <h2>No orders yet</h2>
 
             <p>
-              You haven't placed any orders yet. Start exploring restaurants
-              and order your favorite meals.
+              Your completed orders will appear here.
             </p>
-
-            <a href="/restaurants" className="orders-btn">
-              Browse Restaurants
-            </a>
           </div>
-        </div>
-      </main>
+        ) : (
+          <div className="orders-list">
 
-      <Footer />
-    </>
+            {orders.map((order) => (
+              <div
+                className="order-card"
+                key={order._id}
+              >
+
+                <div className="order-card-header">
+
+                  <div>
+                    <h2>
+                      Order #{order._id.slice(-6)}
+                    </h2>
+
+                    <p>
+                      {new Date(
+                        order.createdAt
+                      ).toLocaleString()}
+                    </p>
+                  </div>
+
+                  <span
+                    className={`order-status ${order.status
+                      ?.toLowerCase()
+                      .replaceAll(" ", "-")}`}
+                  >
+                    {order.status}
+                  </span>
+
+                </div>
+
+                <div className="order-items">
+
+                  {order.items.map((item, index) => (
+                    <div
+                      className="order-item"
+                      key={`${order._id}-${index}`}
+                    >
+
+                      {item.image && (
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                        />
+                      )}
+
+                      <div className="order-item-info">
+
+                        <h3>{item.name}</h3>
+
+                        <p>
+                          {item.quantity} × ₦
+                          {item.price.toLocaleString()}
+                        </p>
+
+                      </div>
+
+                    </div>
+                  ))}
+
+                </div>
+
+                <div className="order-details">
+
+                  <div>
+                    <span>Subtotal</span>
+                    <strong>
+                      ₦
+                      {order.subtotal?.toLocaleString()}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>Delivery</span>
+                    <strong>
+                      ₦
+                      {order.deliveryFee?.toLocaleString()}
+                    </strong>
+                  </div>
+
+                  <div className="order-total">
+                    <span>Total</span>
+                    <strong>
+                      ₦
+                      {order.total?.toLocaleString()}
+                    </strong>
+                  </div>
+
+                </div>
+
+                <div className="order-payment">
+
+                  <div>
+                    <FaCreditCard />
+
+                    <span>
+                      {order.paymentMethod ===
+                      "paystack"
+                        ? "Paystack"
+                        : "Pay on Delivery"}
+                    </span>
+                  </div>
+
+                  <span
+                    className={`payment-status ${order.paymentStatus?.toLowerCase()}`}
+                  >
+                    {order.paymentStatus}
+                  </span>
+
+                </div>
+
+                <div className="order-delivery">
+
+                  <FaTruck />
+
+                  <div>
+                    <strong>
+                      Delivery Address
+                    </strong>
+
+                    <p>
+                      {order.delivery?.address},{" "}
+                      {order.delivery?.city},{" "}
+                      {order.delivery?.state}
+                    </p>
+                  </div>
+
+                </div>
+
+              </div>
+            ))}
+
+          </div>
+        )}
+
+      </div>
+    </div>
   );
 }
 
