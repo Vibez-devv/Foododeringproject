@@ -3,7 +3,7 @@ const axios = require("axios");
 
 const router = express.Router();
 
-// Test payment route
+// Test route
 router.get("/test", (req, res) => {
   res.json({
     message: "Payment route is working",
@@ -12,7 +12,7 @@ router.get("/test", (req, res) => {
 
 // Verify Paystack payment
 router.post("/verify", async (req, res) => {
-  const { reference } = req.body;
+  const { reference, expectedAmount } = req.body;
 
   if (!reference) {
     return res.status(400).json({
@@ -39,23 +39,41 @@ router.post("/verify", async (req, res) => {
 
     const paymentData = response.data?.data;
 
-    // Make sure Paystack actually says the payment succeeded
-    if (!paymentData || paymentData.status !== "success") {
+    if (!paymentData) {
       return res.status(400).json({
-        message: "Payment was not successful",
-        status: paymentData?.status || "unknown",
+        message: "Paystack returned no transaction data.",
       });
     }
 
-    // Make sure this is a Nigerian Naira transaction
+    // Check payment status
+    if (paymentData.status !== "success") {
+      return res.status(400).json({
+        message: "Payment was not successful.",
+        status: paymentData.status,
+      });
+    }
+
+    // Check currency
     if (paymentData.currency !== "NGN") {
       return res.status(400).json({
-        message: "Invalid payment currency",
+        message: "Invalid payment currency.",
       });
     }
 
-    res.status(200).json({
-      message: "Payment verified successfully",
+    // Check amount if provided
+    if (
+      expectedAmount !== undefined &&
+      Number(paymentData.amount) !== Number(expectedAmount)
+    ) {
+      return res.status(400).json({
+        message: "Payment amount does not match the order total.",
+        expectedAmount: Number(expectedAmount),
+        paidAmount: Number(paymentData.amount),
+      });
+    }
+
+    return res.status(200).json({
+      message: "Payment verified successfully.",
       data: {
         status: paymentData.status,
         reference: paymentData.reference,
@@ -70,9 +88,10 @@ router.post("/verify", async (req, res) => {
       error.response?.data || error.message
     );
 
-    res.status(500).json({
-      message: "Payment verification failed",
-      error: error.response?.data || error.message,
+    return res.status(500).json({
+      message: "Payment verification failed.",
+      error:
+        error.response?.data || error.message,
     });
   }
 });
