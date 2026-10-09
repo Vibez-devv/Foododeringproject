@@ -2,7 +2,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import "./Home.css";
 
-import foodImage from "../assets/images/food.jpg";
+// import foodImage from "../assets/images/food.jpg";
 import foodie from "../assets/videos/foodie.mp4";
 
 function Home() {

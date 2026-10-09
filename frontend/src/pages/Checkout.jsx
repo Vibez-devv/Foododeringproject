@@ -1,5 +1,9 @@
 import React, { useState } from "react";
-import { FaMapMarkerAlt, FaLock, FaCreditCard } from "react-icons/fa";
+import {
+  FaMapMarkerAlt,
+  FaLock,
+  FaCreditCard,
+} from "react-icons/fa";
 import { useCart } from "../contexts/Cartcontext";
 import { useNavigate } from "react-router-dom";
 import Paystack from "@paystack/inline-js";
@@ -9,7 +13,8 @@ function Checkout() {
   const { cartItems, clearCart, cartTotal } = useCart();
   const navigate = useNavigate();
 
-  const [paymentMethod, setPaymentMethod] = useState("paystack");
+  const [paymentMethod, setPaymentMethod] =
+    useState("paystack");
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -26,7 +31,12 @@ function Checkout() {
   const subtotal = cartTotal;
   const total = subtotal + deliveryFee;
 
-  const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
+  const publicKey =
+    import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
+
+  const API_URL =
+    import.meta.env.VITE_API_URL ||
+    "http://localhost:8000/api";
 
   const handleChange = (e) => {
     setFormData({
@@ -43,101 +53,157 @@ function Checkout() {
     formData.address.trim() &&
     formData.city.trim();
 
-  const createOrder = async (paymentStatus, paymentReference = "") => {
+  // Create order
+  const createOrder = async (
+    paymentStatus,
+    paymentReference = ""
+  ) => {
     try {
       setLoading(true);
 
-      const response = await fetch("http://localhost:8000/api/orders", {
-        method: "POST",
+      const token = localStorage.getItem("token");
 
-        headers: {
-          "Content-Type": "application/json",
-        },
+      if (!token) {
+        alert("Please login before placing an order.");
+        navigate("/login");
+        return;
+      }
 
-        body: JSON.stringify({
-          items: cartItems.map((item) => ({
-            foodId: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            image: item.image,
-          })),
+      const response = await fetch(
+        `${API_URL}/orders`,
+        {
+          method: "POST",
 
-          customer: {
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-            email: formData.email,
-            phone: formData.phone,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
 
-          delivery: {
-            address: formData.address,
-            city: formData.city,
-            state: formData.state,
-          },
+          body: JSON.stringify({
+            items: cartItems.map((item) => ({
+              foodId: item.id,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+              image: item.image,
+            })),
 
-          subtotal,
-          deliveryFee,
-          total,
+            customer: {
+              firstName: formData.firstName,
+              lastName: formData.lastName,
+              email: formData.email,
+              phone: formData.phone,
+            },
 
-          paymentMethod,
-          paymentStatus,
-          paymentReference,
-        }),
-      });
+            delivery: {
+              address: formData.address,
+              city: formData.city,
+              state: formData.state,
+            },
+
+            subtotal,
+            deliveryFee,
+            total,
+
+            paymentMethod,
+            paymentStatus,
+            paymentReference,
+          }),
+        }
+      );
 
       const result = await response.json();
 
       console.log("Order response:", result);
 
       if (!response.ok) {
-        throw new Error(result.message || "Failed to create order");
+        throw new Error(
+          result.message ||
+            "Failed to create order"
+        );
       }
 
-      // Keep the order locally for the tracking page
-      localStorage.setItem("placedOrder", JSON.stringify(result.order));
+      localStorage.setItem(
+        "placedOrder",
+        JSON.stringify(result.order)
+      );
 
       clearCart();
 
       navigate("/track-order");
     } catch (error) {
-      console.error("Create order error:", error);
+      console.error(
+        "Create order error:",
+        error
+      );
 
-      alert(error.message || "Something went wrong while creating your order.");
+      alert(
+        error.message ||
+          "Something went wrong while creating your order."
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  // Verify payment with our backend
+  // Verify Paystack payment
   const verifyPayment = async (reference) => {
     try {
-      const response = await fetch("https://foododeringproject.onrender.com/api/payment/verify", {
-        method: "POST",
+      const token = localStorage.getItem("token");
 
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          refernce,
-          expectedAmount: total * 100,
-        }),
-      });
+      if (!token) {
+        alert("Please login before making a payment.");
+        setLoading(false);
+        navigate("/login");
+        return;
+      }
+
+      const response = await fetch(
+        `${API_URL}/payment/verify`,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+
+          body: JSON.stringify({
+            reference,
+            expectedAmount: total * 100,
+          }),
+        }
+      );
 
       const result = await response.json();
 
-      console.log("Paystack verification:", result);
+      console.log(
+        "Paystack verification:",
+        result
+      );
 
-      if (!response.ok || result?.data?.status !== "success") {
-        throw new Error(result?.message || "Payment verification failed");
+      if (
+        !response.ok ||
+        result?.data?.status !== "success"
+      ) {
+        throw new Error(
+          result?.message ||
+            "Payment verification failed"
+        );
       }
 
-      createOrder("Paid", reference);
+      await createOrder(
+        "Paid",
+        reference
+      );
     } catch (error) {
-      console.error(error);
+      console.error(
+        "Payment verification error:",
+        error
+      );
 
       alert(
-        "Payment was completed, but we could not verify it. Please contact support.",
+        "Payment was completed, but we could not verify it. Please contact support."
       );
 
       setLoading(false);
@@ -147,12 +213,24 @@ function Checkout() {
   // Start Paystack
   const handlePaystackPayment = () => {
     if (!isFormValid) {
-      alert("Please complete all delivery information first.");
+      alert(
+        "Please complete all delivery information first."
+      );
       return;
     }
 
     if (!publicKey) {
-      alert("Paystack public key is missing. Check your frontend .env file.");
+      alert(
+        "Paystack public key is missing. Check your frontend .env file."
+      );
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Please login before making a payment.");
+      navigate("/login");
       return;
     }
 
@@ -169,7 +247,12 @@ function Checkout() {
 
       currency: "NGN",
 
-      channels: ["card", "bank", "ussd", "bank_transfer"],
+      channels: [
+        "card",
+        "bank",
+        "ussd",
+        "bank_transfer",
+      ],
 
       metadata: {
         customer_name: `${formData.firstName} ${formData.lastName}`,
@@ -179,13 +262,20 @@ function Checkout() {
       },
 
       onSuccess: (transaction) => {
-        console.log("Paystack payment successful:", transaction);
+        console.log(
+          "Paystack payment successful:",
+          transaction
+        );
 
-        verifyPayment(transaction.reference);
+        verifyPayment(
+          transaction.reference
+        );
       },
 
       onCancel: () => {
-        console.log("Paystack payment cancelled.");
+        console.log(
+          "Paystack payment cancelled."
+        );
 
         setLoading(false);
 
@@ -199,7 +289,9 @@ function Checkout() {
     e.preventDefault();
 
     if (!isFormValid) {
-      alert("Please complete all delivery information.");
+      alert(
+        "Please complete all delivery information."
+      );
       return;
     }
 
@@ -212,9 +304,15 @@ function Checkout() {
         <div className="empty-checkout">
           <h2>Your cart is empty</h2>
 
-          <p>Add some food before checking out.</p>
+          <p>
+            Add some food before checking out.
+          </p>
 
-          <button onClick={() => navigate("/restaurants")}>
+          <button
+            onClick={() =>
+              navigate("/restaurants")
+            }
+          >
             Browse Restaurants
           </button>
         </div>
@@ -225,26 +323,38 @@ function Checkout() {
   return (
     <div className="checkout-page">
       <div className="checkout-container">
+
         <div className="checkout-header">
           <h1>Checkout</h1>
 
-          <p>Complete your order and choose your payment method.</p>
+          <p>
+            Complete your order and choose your
+            payment method.
+          </p>
         </div>
 
         <div className="checkout-content">
+
           {/* DELIVERY INFORMATION */}
 
           <div className="checkout-left">
+
             <div className="checkout-card">
+
               <div className="section-title">
                 <FaMapMarkerAlt />
 
-                <h2>Delivery Information</h2>
+                <h2>
+                  Delivery Information
+                </h2>
               </div>
 
               <div className="form-row">
+
                 <div className="form-group">
-                  <label>First Name</label>
+                  <label>
+                    First Name
+                  </label>
 
                   <input
                     type="text"
@@ -256,7 +366,9 @@ function Checkout() {
                 </div>
 
                 <div className="form-group">
-                  <label>Last Name</label>
+                  <label>
+                    Last Name
+                  </label>
 
                   <input
                     type="text"
@@ -266,10 +378,13 @@ function Checkout() {
                     placeholder="Last name"
                   />
                 </div>
+
               </div>
 
               <div className="form-group">
-                <label>Email Address</label>
+                <label>
+                  Email Address
+                </label>
 
                 <input
                   type="email"
@@ -281,7 +396,9 @@ function Checkout() {
               </div>
 
               <div className="form-group">
-                <label>Phone Number</label>
+                <label>
+                  Phone Number
+                </label>
 
                 <input
                   type="tel"
@@ -293,7 +410,9 @@ function Checkout() {
               </div>
 
               <div className="form-group">
-                <label>Delivery Address</label>
+                <label>
+                  Delivery Address
+                </label>
 
                 <input
                   type="text"
@@ -305,8 +424,11 @@ function Checkout() {
               </div>
 
               <div className="form-row">
+
                 <div className="form-group">
-                  <label>City</label>
+                  <label>
+                    City
+                  </label>
 
                   <input
                     type="text"
@@ -318,7 +440,9 @@ function Checkout() {
                 </div>
 
                 <div className="form-group">
-                  <label>State</label>
+                  <label>
+                    State
+                  </label>
 
                   <input
                     type="text"
@@ -328,65 +452,110 @@ function Checkout() {
                     placeholder="Lagos"
                   />
                 </div>
+
               </div>
+
             </div>
 
             {/* PAYMENT */}
 
             <div className="checkout-card">
+
               <div className="section-title">
                 <FaCreditCard />
 
-                <h2>Payment Method</h2>
+                <h2>
+                  Payment Method
+                </h2>
               </div>
 
               <div className="payment-options">
+
                 <label className="payment-option">
+
                   <input
                     type="radio"
                     name="payment"
                     value="paystack"
-                    checked={paymentMethod === "paystack"}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
+                    checked={
+                      paymentMethod ===
+                      "paystack"
+                    }
+                    onChange={(e) =>
+                      setPaymentMethod(
+                        e.target.value
+                      )
+                    }
                   />
 
                   <div>
-                    <strong>Pay with Paystack</strong>
+                    <strong>
+                      Pay with Paystack
+                    </strong>
 
-                    <p>Card, bank transfer, USSD and more</p>
+                    <p>
+                      Card, bank transfer,
+                      USSD and more
+                    </p>
                   </div>
+
                 </label>
 
                 <label className="payment-option">
+
                   <input
                     type="radio"
                     name="payment"
                     value="delivery"
-                    checked={paymentMethod === "delivery"}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
+                    checked={
+                      paymentMethod ===
+                      "delivery"
+                    }
+                    onChange={(e) =>
+                      setPaymentMethod(
+                        e.target.value
+                      )
+                    }
                   />
 
                   <div>
-                    <strong>Pay on Delivery</strong>
+                    <strong>
+                      Pay on Delivery
+                    </strong>
 
-                    <p>Pay when your food arrives</p>
+                    <p>
+                      Pay when your food
+                      arrives
+                    </p>
                   </div>
+
                 </label>
+
               </div>
 
-              {paymentMethod === "paystack" && (
+              {paymentMethod ===
+                "paystack" && (
                 <div className="paystack-section">
+
                   <div className="secure-payment">
                     <FaLock />
 
-                    <span>Secure payment powered by Paystack</span>
+                    <span>
+                      Secure payment
+                      powered by Paystack
+                    </span>
                   </div>
 
                   <button
                     type="button"
                     className="paystack-button"
-                    onClick={handlePaystackPayment}
-                    disabled={!isFormValid || loading}
+                    onClick={
+                      handlePaystackPayment
+                    }
+                    disabled={
+                      !isFormValid ||
+                      loading
+                    }
                   >
                     <FaCreditCard />
 
@@ -394,70 +563,128 @@ function Checkout() {
                       ? "Processing Payment..."
                       : `Pay ₦${total.toLocaleString()}`}
                   </button>
+
                 </div>
               )}
 
-              {paymentMethod === "delivery" && (
-                <form onSubmit={handlePayOnDelivery}>
+              {paymentMethod ===
+                "delivery" && (
+                <form
+                  onSubmit={
+                    handlePayOnDelivery
+                  }
+                >
+
                   <button
                     type="submit"
                     className="place-order-button"
-                    disabled={!isFormValid}
+                    disabled={
+                      !isFormValid ||
+                      loading
+                    }
                   >
                     <FaLock />
-                    Place Order
+
+                    {loading
+                      ? "Placing Order..."
+                      : "Place Order"}
                   </button>
+
                 </form>
               )}
+
             </div>
+
           </div>
 
           {/* ORDER SUMMARY */}
 
           <div className="checkout-right">
+
             <div className="checkout-card order-summary">
-              <h2>Order Summary</h2>
+
+              <h2>
+                Order Summary
+              </h2>
 
               <div className="summary-items">
+
                 {cartItems.map((item) => (
-                  <div className="summary-item" key={item.id}>
-                    <img src={item.image} alt={item.name} />
+                  <div
+                    className="summary-item"
+                    key={item.id}
+                  >
+
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                    />
 
                     <div className="summary-item-info">
-                      <h3>{item.name}</h3>
+
+                      <h3>
+                        {item.name}
+                      </h3>
 
                       <p>
-                        {item.quantity} × ₦{item.price.toLocaleString()}
+                        {item.quantity} × ₦
+                        {item.price.toLocaleString()}
                       </p>
+
                     </div>
 
                     <strong>
-                      ₦{(item.price * item.quantity).toLocaleString()}
+                      ₦
+                      {(
+                        item.price *
+                        item.quantity
+                      ).toLocaleString()}
                     </strong>
+
                   </div>
                 ))}
+
               </div>
 
               <div className="summary-line">
-                <span>Subtotal</span>
+                <span>
+                  Subtotal
+                </span>
 
-                <strong>₦{subtotal.toLocaleString()}</strong>
+                <strong>
+                  ₦
+                  {subtotal.toLocaleString()}
+                </strong>
               </div>
 
               <div className="summary-line">
-                <span>Delivery Fee</span>
+                <span>
+                  Delivery Fee
+                </span>
 
-                <strong>₦{deliveryFee.toLocaleString()}</strong>
+                <strong>
+                  ₦
+                  {deliveryFee.toLocaleString()}
+                </strong>
               </div>
 
               <div className="summary-total">
-                <span>Total</span>
+                <span>
+                  Total
+                </span>
 
-                <strong>₦{total.toLocaleString()}</strong>
+                <strong>
+                  ₦
+                  {total.toLocaleString()}
+                </strong>
               </div>
+
             </div>
+
           </div>
+
         </div>
+
       </div>
     </div>
   );
