@@ -1,6 +1,5 @@
 const Order = require("../models/Order");
 
-// CREATE ORDER
 const createOrder = async (req, res) => {
   try {
     const {
@@ -14,7 +13,6 @@ const createOrder = async (req, res) => {
       paymentReference,
     } = req.body;
 
-    // Validate required information
     if (
       !items ||
       items.length === 0 ||
@@ -29,15 +27,12 @@ const createOrder = async (req, res) => {
       });
     }
 
-    // Validate payment method
     if (!["paystack", "delivery"].includes(paymentMethod)) {
       return res.status(400).json({
         message: "Invalid payment method.",
       });
     }
 
-    // Paystack orders must have a verified payment reference.
-    // Verification will be connected securely in the next step.
     if (paymentMethod === "paystack" && !paymentReference) {
       return res.status(400).json({
         message: "A payment reference is required.",
@@ -45,16 +40,24 @@ const createOrder = async (req, res) => {
     }
 
     const order = await Order.create({
+      userId: req.user.id,
+
       items,
       customer,
       delivery,
+
       subtotal,
       deliveryFee: deliveryFee ?? 1000,
       total,
+
       paymentMethod,
       paymentReference: paymentReference || "",
+
       paymentStatus:
-        paymentMethod === "paystack" ? "Paid" : "Pending",
+        paymentMethod === "paystack"
+          ? "Paid"
+          : "Pending",
+
       status: "Order Confirmed",
     });
 
@@ -72,10 +75,11 @@ const createOrder = async (req, res) => {
   }
 };
 
-// GET ALL ORDERS
 const getOrders = async (req, res) => {
   try {
-    const orders = await Order.find().sort({ createdAt: -1 });
+    const orders = await Order.find({
+      userId: req.user.id,
+    }).sort({ createdAt: -1 });
 
     return res.status(200).json({
       count: orders.length,
@@ -90,10 +94,12 @@ const getOrders = async (req, res) => {
   }
 };
 
-// GET ONE ORDER
 const getOrderById = async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findOne({
+      _id: req.params.id,
+      userId: req.user.id,
+    });
 
     if (!order) {
       return res.status(404).json({
@@ -101,7 +107,9 @@ const getOrderById = async (req, res) => {
       });
     }
 
-    return res.status(200).json({ order });
+    return res.status(200).json({
+      order,
+    });
   } catch (error) {
     return res.status(400).json({
       message: "Invalid order ID.",

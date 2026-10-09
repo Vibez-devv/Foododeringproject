@@ -2,22 +2,32 @@ const jwt = require("jsonwebtoken");
 
 const protect = (req, res, next) => {
   try {
-    const authHeader = req.Header.authorization;
-    if (!authHeader || !authHeader.startswith("Bearer")) {
+    const authHeader = req.headers.authorization;
+
+    if (
+      !authHeader ||
+      !authHeader.startsWith("Bearer ")
+    ) {
       return res.status(401).json({
-        message: "Not allowed.Please Login.",
+        message: "Not allowed. Please login.",
       });
     }
 
     const token = authHeader.split(" ")[1];
 
-    const decoded = jwt.verify(token, process.env.Jwt_SECRET);
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET
+    );
 
     req.user = decoded;
+
     next();
   } catch (error) {
+    console.error("Auth error:", error.message);
+
     return res.status(401).json({
-      message: "Invalid or expird token",
+      message: "Invalid or expired token.",
     });
   }
 };
