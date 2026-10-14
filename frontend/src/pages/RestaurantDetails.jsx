@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
 import {
   faArrowLeft,
   faStar,
@@ -14,114 +15,112 @@ import { useCart } from "../contexts/Cartcontext";
 
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import RestaurantReviews from "../components/RestaurantReviews";
 
 import "./RestaurantDetails.css";
 
 import food from "../assets/images/food.jpg";
 import burger from "../assets/images/burger.jpg";
 import pizza from "../assets/images/pizza.jpg";
-import wings from "../assets/images/wings.jpg";
-import cake from "../assets/images/cake.jpg";
-import salad from "../assets/images/salad.jpg";
-// import { useCart } from "../contexts/Cartcontext";
+
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  "https://foododeringproject.onrender.com/api";
 
 function RestaurantDetails() {
-
   const { id } = useParams();
-
   const { addToCart } = useCart();
 
+  const [restaurant, setRestaurant] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
+  // Load the restaurant from MongoDB
+  useEffect(() => {
+    const controller = new AbortController();
 
+    const fetchRestaurant = async () => {
+      setLoading(true);
+      setError("");
 
-  const restaurants = [
-    {
-      id: 1,
-      name: "Taste Kitchen",
-      category: "Nigerian • Fast Food",
-      rating: "4.8",
-      delivery: "20-30 min",
-      image: food,
-    },
+      try {
+        const response = await fetch(
+          `${API_URL}/restaurant/${id}`,
+          { signal: controller.signal }
+        );
 
-    {
-      id: 2,
-      name: "Burger House",
-      category: "Burgers • Fast Food",
-      rating: "4.6",
-      delivery: "15-25 min",
-      image: burger,
-    },
+        const data = await response.json();
 
-    {
-      id: 3,
-      name: "Pizza Palace",
-      category: "Pizza • Italian",
-      rating: "4.7",
-      delivery: "25-35 min",
-      image: pizza,
-    },
+        if (!response.ok) {
+          throw new Error(
+            data.message || "Unable to load restaurant."
+          );
+        }
 
-    {
-      id: 4,
-      name: "Chicken Republic",
-      category: "Chicken • Fast Food",
-      rating: "4.5",
-      delivery: "20-30 min",
-      image: wings,
-    },
+        setRestaurant(data.restaurant);
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          console.error("Restaurant fetch error:", err);
+          setError(err.message || "Unable to load restaurant.");
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
+      }
+    };
 
-    {
-      id: 5,
-      name: "Sweet Treats",
-      category: "Desserts • Bakery",
-      rating: "4.9",
-      delivery: "15-25 min",
-      image: cake,
-    },
+    if (id) {
+      fetchRestaurant();
+    }
 
-    {
-      id: 6,
-      name: "Fresh Bowl",
-      category: "Healthy • Salads",
-      rating: "4.6",
-      delivery: "20-30 min",
-      image: salad,
-    },
-  ];
+    return () => controller.abort();
+  }, [id]);
 
+  // Add food to cart
+  const handleAddToCart = (foodId, name, price, image) => {
+    if (!restaurant) return;
 
-  /* ================================
-     FIND RESTAURANT
-  ================================= */
+    addToCart({
+      id: `${restaurant._id}-${foodId}`,
+      foodId,
+      restaurantId: restaurant._id,
+      name,
+      price,
+      image,
+    });
+  };
 
-  const restaurant = restaurants.find(
-    (item) => item.id === Number(id)
-  );
+  // Loading screen
+  if (loading) {
+    return (
+      <>
+        <Navbar />
 
+        <main className="restaurant-details">
+          <p>Loading restaurant...</p>
+        </main>
 
-  /* ================================
-     RESTAURANT NOT FOUND
-  ================================= */
+        <Footer />
+      </>
+    );
+  }
 
-  if (!restaurant) {
-
+  // Error or restaurant not found
+  if (error || !restaurant) {
     return (
       <>
         <Navbar />
 
         <div className="restaurant-not-found">
-
           <h1>
-            Restaurant not found
+            {error || "Restaurant not found"}
           </h1>
 
           <Link to="/restaurants">
             <FontAwesomeIcon icon={faArrowLeft} />
-            {" "}
-            Back to Restaurants
+            {" "}Back to Restaurants
           </Link>
-
         </div>
 
         <Footer />
@@ -129,282 +128,181 @@ function RestaurantDetails() {
     );
   }
 
+  // Use database restaurant properties
+  const restaurantName =
+    restaurant.restaurantName || "Restaurant";
 
-  /* ================================
-     ADD TO CART
-  ================================= */
+  const restaurantRating = Number(restaurant.rating || 0);
 
-  const handleAddToCart = (
-    foodId,
-    name,
-    price,
-    image
-  ) => {
+  const restaurantImage =
+    restaurant.image || food;
 
-    addToCart({
-      id: `${restaurant.id}-${foodId}`,
-      name: name,
-      price: price,
-      image: image,
-    });
-
-  };
-
+  const restaurantCategory =
+    restaurant.category || "Food & Restaurant";
 
   return (
     <>
       <Navbar />
 
-
       <main className="restaurant-details">
 
-
-        {/* ================================
-            BACK
-        ================================= */}
-
+        {/* BACK BUTTON */}
         <Link
           to="/restaurants"
           className="back-link"
         >
           <FontAwesomeIcon icon={faArrowLeft} />
-
-          {" "} Back to Restaurants
+          {" "}Back to Restaurants
         </Link>
 
-
-
-        {/* ================================
-            RESTAURANT HERO
-        ================================= */}
-
+        {/* RESTAURANT HERO */}
         <section className="restaurant-hero">
 
-
           <img
-            src={restaurant.image}
-            alt={restaurant.name}
+            src={restaurantImage}
+            alt={restaurantName}
+            onError={(event) => {
+              event.currentTarget.onerror = null;
+              event.currentTarget.src = food;
+            }}
           />
-
 
           <div className="restaurant-hero-info">
 
-
             <span className="open-status">
-              ● Open now
+              {restaurant.isOpen === false
+                ? "● Closed"
+                : "● Open now"}
             </span>
 
-
-            <h1>
-              {restaurant.name}
-            </h1>
-
+            <h1>{restaurantName}</h1>
 
             <p className="restaurant-category">
-              {restaurant.category}
+              {restaurantCategory}
             </p>
-
 
             <div className="restaurant-meta">
 
-
               <span>
-
-                <FontAwesomeIcon
-                  icon={faStar}
-                />
-
-                {" "} {restaurant.rating}
-
+                <FontAwesomeIcon icon={faStar} />
+                {" "}
+                {restaurantRating.toFixed(1)}
               </span>
 
-
               <span>
-
-                <FontAwesomeIcon
-                  icon={faClock}
-                />
-
-                {" "} {restaurant.delivery}
-
+                <FontAwesomeIcon icon={faClock} />
+                {" "}20–30 min
               </span>
 
-
               <span>
-
-                <FontAwesomeIcon
-                  icon={faTruck}
-                />
-
-                {" "} Free delivery
-
+                <FontAwesomeIcon icon={faTruck} />
+                {" "}Delivery available
               </span>
-
 
             </div>
 
-
             <p className="restaurant-description">
-
-              Enjoy delicious meals prepared fresh
-              by our restaurant. Order your favorite
-              food and have it delivered straight to
-              your door.
-
+              Enjoy delicious meals prepared fresh by{" "}
+              {restaurantName}. Order your favorite food
+              and have it delivered straight to your door.
             </p>
 
+            {restaurant.address && (
+              <p className="restaurant-address">
+                <strong>Address:</strong>{" "}
+                {restaurant.address}
+              </p>
+            )}
 
           </div>
-
         </section>
 
-
-
-        {/* ================================
-            MENU
-        ================================= */}
-
+        {/* MENU */}
         <section className="menu-section">
-
 
           <div className="menu-header">
 
-
             <div>
-
-              <p>
-                OUR MENU
-              </p>
-
-              <h2>
-                Popular dishes
-              </h2>
-
+              <p>OUR MENU</p>
+              <h2>Popular dishes</h2>
             </div>
-
 
             <Link
               to="/cart"
               className="cart-button"
             >
-
-              <FontAwesomeIcon
-                icon={faCartShopping}
-              />
-
-              {" "} Cart
-
+              <FontAwesomeIcon icon={faCartShopping} />
+              {" "}Cart
             </Link>
-
 
           </div>
 
-
-
-          {/* ================================
-              FOOD GRID
-          ================================= */}
-
+          {/* FOOD GRID */}
           <div className="menu-grid">
 
-
-            {/* ================================
-                SPECIAL MEAL
-            ================================= */}
-
+            {/* SPECIAL MEAL */}
             <div className="food-card">
 
-
               <img
-                src={restaurant.image}
+                src={restaurantImage}
                 alt="Special Meal"
               />
 
-
               <div className="food-info">
 
-
-                <h3>
-                  Special Meal
-                </h3>
-
+                <h3>Special Meal</h3>
 
                 <p>
                   Delicious freshly prepared meal.
                 </p>
 
-
                 <div className="food-bottom">
 
-
-                  <strong>
-                    ₦4,500
-                  </strong>
-
+                  <strong>₦4,500</strong>
 
                   <button
+                    type="button"
+                    disabled={restaurant.isOpen === false}
                     onClick={() =>
                       handleAddToCart(
                         "special",
                         "Special Meal",
                         4500,
-                        restaurant.image
+                        restaurantImage
                       )
                     }
                   >
-
-                    <FontAwesomeIcon
-                      icon={faPlus}
-                    />
-
-                    {" "} Add to Cart
-
+                    <FontAwesomeIcon icon={faPlus} />
+                    {" "}Add to Cart
                   </button>
 
-
                 </div>
-
               </div>
-
             </div>
 
-
-
-            {/* ================================
-                BURGER
-            ================================= */}
-
+            {/* BURGER */}
             <div className="food-card">
-
 
               <img
                 src={burger}
                 alt="Classic Burger"
               />
 
-
               <div className="food-info">
 
-
-                <h3>
-                  Classic Burger
-                </h3>
-
+                <h3>Classic Burger</h3>
 
                 <p>
                   Juicy burger with fresh ingredients.
                 </p>
 
-
                 <div className="food-bottom">
 
-
-                  <strong>
-                    ₦3,500
-                  </strong>
-
+                  <strong>₦3,500</strong>
 
                   <button
+                    type="button"
+                    disabled={restaurant.isOpen === false}
                     onClick={() =>
                       handleAddToCart(
                         "burger",
@@ -414,60 +312,37 @@ function RestaurantDetails() {
                       )
                     }
                   >
-
-                    <FontAwesomeIcon
-                      icon={faPlus}
-                    />
-
-                    {" "} Add to Cart
-
+                    <FontAwesomeIcon icon={faPlus} />
+                    {" "}Add to Cart
                   </button>
 
-
                 </div>
-
               </div>
-
             </div>
 
-
-
-            {/* ================================
-                PIZZA
-            ================================= */}
-
+            {/* PIZZA */}
             <div className="food-card">
-
 
               <img
                 src={pizza}
                 alt="Chicken Pizza"
               />
 
-
               <div className="food-info">
 
-
-                <h3>
-                  Chicken Pizza
-                </h3>
-
+                <h3>Chicken Pizza</h3>
 
                 <p>
-                  Hot pizza loaded with chicken
-                  and cheese.
+                  Hot pizza loaded with chicken and cheese.
                 </p>
-
 
                 <div className="food-bottom">
 
-
-                  <strong>
-                    ₦5,500
-                  </strong>
-
+                  <strong>₦5,500</strong>
 
                   <button
+                    type="button"
+                    disabled={restaurant.isOpen === false}
                     onClick={() =>
                       handleAddToCart(
                         "pizza",
@@ -477,37 +352,27 @@ function RestaurantDetails() {
                       )
                     }
                   >
-
-                    <FontAwesomeIcon
-                      icon={faPlus}
-                    />
-
-                    {" "} Add to Cart
-
+                    <FontAwesomeIcon icon={faPlus} />
+                    {" "}Add to Cart
                   </button>
 
-
                 </div>
-
               </div>
-
             </div>
 
-
-
           </div>
-
         </section>
 
+        {/* CUSTOMER REVIEWS */}
+        <RestaurantReviews
+          restaurantId={restaurant._id}
+        />
 
       </main>
 
-
       <Footer />
-
     </>
   );
 }
-
 
 export default RestaurantDetails;
