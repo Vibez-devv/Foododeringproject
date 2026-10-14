@@ -2,16 +2,26 @@ const mongoose = require("mongoose");
 
 const orderSchema = new mongoose.Schema(
   {
+    // The customer who placed the order
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
     items: [
       {
-        userId: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
-          required: true,
-        },
         foodId: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "Food",
+          required: true,
+        },
+
+        // The restaurant this food belongs to
+        restaurantId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Restaurant",
+          required: true,
         },
 
         name: {
@@ -22,6 +32,7 @@ const orderSchema = new mongoose.Schema(
         price: {
           type: Number,
           required: true,
+          min: 0,
         },
 
         quantity: {
@@ -32,6 +43,7 @@ const orderSchema = new mongoose.Schema(
 
         image: {
           type: String,
+          default: "",
         },
       },
     ],
@@ -78,16 +90,19 @@ const orderSchema = new mongoose.Schema(
     subtotal: {
       type: Number,
       required: true,
+      min: 0,
     },
 
     deliveryFee: {
       type: Number,
       default: 1000,
+      min: 0,
     },
 
     total: {
       type: Number,
       required: true,
+      min: 0,
     },
 
     paymentMethod: {
@@ -121,7 +136,7 @@ const orderSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 module.exports = mongoose.model("Order", orderSchema);
