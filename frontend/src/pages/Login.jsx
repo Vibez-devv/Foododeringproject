@@ -46,16 +46,22 @@ function Login() {
         throw new Error(data.message || "Login failed");
       }
 
+      // Save authentication details.
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
       setMessage("Login successful!");
 
+      // Redirect according to the user's role.
       setTimeout(() => {
-        navigate("/");
-      }, 1000);
+        if (data.user.role === "admin") {
+          navigate("/admin", { replace: true });
+        } else {
+          navigate("/", { replace: true });
+        }
+      }, 700);
     } catch (error) {
-      setMessage(error.message);
+      setMessage(error.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -67,21 +73,14 @@ function Login() {
 
       <main className="login-page">
         <div className="login-card">
-
           <div className="login-header">
             <h1>Welcome Back</h1>
             <p>Login to your VibezFoodHub account</p>
           </div>
 
-          <form
-            className="login-form"
-            onSubmit={handleSubmit}
-          >
-
+          <form className="login-form" onSubmit={handleSubmit}>
             <div className="form-group">
-              <label htmlFor="email">
-                Email Address
-              </label>
+              <label htmlFor="email">Email Address</label>
 
               <input
                 type="email"
@@ -90,14 +89,13 @@ function Login() {
                 placeholder="Enter your email"
                 value={formData.email}
                 onChange={handleChange}
+                autoComplete="email"
                 required
               />
             </div>
 
             <div className="form-group">
-              <label htmlFor="password">
-                Password
-              </label>
+              <label htmlFor="password">Password</label>
 
               <input
                 type="password"
@@ -106,12 +104,12 @@ function Login() {
                 placeholder="Enter your password"
                 value={formData.password}
                 onChange={handleChange}
+                autoComplete="current-password"
                 required
               />
             </div>
 
             <div className="login-options">
-
               <label className="remember">
                 <input type="checkbox" />
                 Remember me
@@ -120,11 +118,10 @@ function Login() {
               <Link to="/forgot-password">
                 Forgot password?
               </Link>
-
             </div>
 
             {message && (
-              <p className="login-message">
+              <p className="login-message" role="status">
                 {message}
               </p>
             )}
@@ -136,18 +133,14 @@ function Login() {
             >
               {loading ? "Logging in..." : "Login"}
             </button>
-
           </form>
 
           <div className="signup-link">
             <p>
               Don't have an account?
-              <Link to="/signup">
-                {" "}Create Account
-              </Link>
+              <Link to="/signup"> Create Account</Link>
             </p>
           </div>
-
         </div>
       </main>
 
