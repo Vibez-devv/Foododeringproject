@@ -15,7 +15,9 @@ const addFood = async (req, res) => {
     if (
       !foodName ||
       !description ||
-      !price ||
+      price === undefined ||
+      price === null ||
+      price === "" ||
       !category ||
       !restaurantId
     ) {
@@ -33,12 +35,12 @@ const addFood = async (req, res) => {
       restaurantId,
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Food added successfully",
       food,
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       message: error.message,
     });
   }
@@ -49,11 +51,9 @@ const getAllFoods = async (req, res) => {
   try {
     const foods = await Food.find().sort({ createdAt: -1 });
 
-    res.status(200).json({
-      foods,
-    });
+    return res.status(200).json({ foods });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       message: error.message,
     });
   }
@@ -70,11 +70,64 @@ const getFoodById = async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({ food });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+// Update Food Availability
+const updateFoodAvailability = async (req, res) => {
+  try {
+    const { available } = req.body;
+
+    if (typeof available !== "boolean") {
+      return res.status(400).json({
+        message: "Please provide a valid availability status",
+      });
+    }
+
+    const food = await Food.findByIdAndUpdate(
+      req.params.id,
+      { available },
+      { new: true, runValidators: true }
+    );
+
+    if (!food) {
+      return res.status(404).json({
+        message: "Food not found",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Food availability updated successfully",
       food,
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+// Delete Food
+const deleteFood = async (req, res) => {
+  try {
+    const food = await Food.findByIdAndDelete(req.params.id);
+
+    if (!food) {
+      return res.status(404).json({
+        message: "Food not found",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Food deleted successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
       message: error.message,
     });
   }
@@ -84,4 +137,6 @@ module.exports = {
   addFood,
   getAllFoods,
   getFoodById,
+  updateFoodAvailability,
+  deleteFood,
 };

@@ -4,17 +4,20 @@ const {
   addFood,
   getAllFoods,
   getFoodById,
+  updateFoodAvailability,
+  deleteFood,
 } = require("../controllers/foodController");
 
 const router = express.Router();
 
-// Add food
 router.post("/add", addFood);
 
-// Get all foods
 router.get("/all", getAllFoods);
 
-// Get one food
+router.patch("/:id/availability", updateFoodAvailability);
+
+router.delete("/:id", deleteFood);
+
 router.get("/:id", getFoodById);
 
 module.exports = router;
