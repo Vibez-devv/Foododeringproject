@@ -14,6 +14,8 @@ import ManageOrders from "./pages/ManageOrders";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Orders from "./pages/Orders";
+import AdminDashboard from "./pages/AdminDashboard";
+
 function App() {
   return (
     <CartProvider>
@@ -43,6 +45,8 @@ function App() {
 
           <Route path="/signup" element={<Signup />} />
           <Route path="/orders" element={<Orders />} />
+
+          <Route path="/admin" element={<AdminDashboard />} />
         </Routes>
       </BrowserRouter>
     </CartProvider>
