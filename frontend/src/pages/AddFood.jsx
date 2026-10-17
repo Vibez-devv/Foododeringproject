@@ -1,245 +1,345 @@
+import { useEffect, useState } from "react";
 import "./AddFood.css";
 
-function Cart({
-  order = [],
-  onClose,
-  onUpdateQuantity,
-  onRemove,
-  onClear,
-}) {
-  const totalItems = order.reduce(
-    (total, food) => total + food.quantity,
-    0
-  );
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  "https://foododeringproject.onrender.com/api";
+
+function AddFood() {
+  const [restaurants, setRestaurants] = useState([]);
+
+  const [formData, setFormData] = useState({
+    foodName: "",
+    description: "",
+    price: "",
+    category: "",
+    image: "",
+    restaurantId: "",
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [loadingRestaurants, setLoadingRestaurants] =
+    useState(true);
+
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  // Load restaurants from MongoDB
+  useEffect(() => {
+    const fetchRestaurants = async () => {
+      try {
+        const response = await fetch(
+          `${API_URL}/restaurant/all`
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.message || "Failed to load restaurants."
+          );
+        }
+
+        setRestaurants(data.restaurants || []);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoadingRestaurants(false);
+      }
+    };
+
+    fetchRestaurants();
+  }, []);
+
+  // Update form fields
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+
+    setFormData((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+
+    setMessage("");
+    setError("");
+  };
+
+  // Submit food to backend
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    setMessage("");
+    setError("");
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setError("Please log in before adding food.");
+      return;
+    }
+
+    if (!formData.restaurantId) {
+      setError("Please select a restaurant.");
+      return;
+    }
+
+    if (Number(formData.price) <= 0) {
+      setError("Price must be greater than zero.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${API_URL}/food/add`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          foodName: formData.foodName.trim(),
+          description: formData.description.trim(),
+          price: Number(formData.price),
+          category: formData.category.trim(),
+          image: formData.image.trim(),
+          restaurantId: formData.restaurantId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Unable to add food."
+        );
+      }
+
+      setMessage("Food added successfully!");
+
+      setFormData({
+        foodName: "",
+        description: "",
+        price: "",
+        category: "",
+        image: "",
+        restaurantId: "",
+      });
+    } catch (err) {
+      setError(
+        `${err.message} If this continues, check your food API route.`
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="cart-overlay">
+    <main className="add-food-page">
+      <div className="add-food-container">
+        <div className="add-food-heading">
+          <span className="add-food-eyebrow">
+            VIBEZ FOODHUB
+          </span>
 
-      <aside className="cart-panel">
+          <h1>Add New Food</h1>
 
-        {/* CART HEADER */}
-        <div className="cart-header">
+          <p>
+            Add delicious meals to your restaurant menu.
+          </p>
+        </div>
 
-          <div>
-            <p className="cart-label">
-              FOODORDERINGAPP
-            </p>
+        {message && (
+          <div className="add-food-message success">
+            {message}
+          </div>
+        )}
 
-            <h2>Your Order</h2>
+        {error && (
+          <div className="add-food-message error">
+            {error}
+          </div>
+        )}
+
+        <form
+          className="add-food-form"
+          onSubmit={handleSubmit}
+        >
+          <div className="add-food-field">
+            <label htmlFor="foodName">
+              Food Name
+            </label>
+
+            <input
+              id="foodName"
+              name="foodName"
+              type="text"
+              placeholder="e.g. Jollof Rice"
+              value={formData.foodName}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="add-food-field">
+            <label htmlFor="description">
+              Description
+            </label>
+
+            <textarea
+              id="description"
+              name="description"
+              placeholder="Describe this delicious meal..."
+              value={formData.description}
+              onChange={handleChange}
+              rows="4"
+              required
+            />
+          </div>
+
+          <div className="add-food-row">
+            <div className="add-food-field">
+              <label htmlFor="price">
+                Price (₦)
+              </label>
+
+              <input
+                id="price"
+                name="price"
+                type="number"
+                min="1"
+                step="0.01"
+                placeholder="e.g. 3500"
+                value={formData.price}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="add-food-field">
+              <label htmlFor="category">
+                Category
+              </label>
+
+              <select
+                id="category"
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                required
+              >
+                <option value="">
+                  Select category
+                </option>
+
+                <option value="Rice">
+                  Rice
+                </option>
+
+                <option value="Swallow">
+                  Swallow
+                </option>
+
+                <option value="Fast Food">
+                  Fast Food
+                </option>
+
+                <option value="Chicken">
+                  Chicken
+                </option>
+
+                <option value="Seafood">
+                  Seafood
+                </option>
+
+                <option value="Drinks">
+                  Drinks
+                </option>
+
+                <option value="Desserts">
+                  Desserts
+                </option>
+
+                <option value="Other">
+                  Other
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div className="add-food-field">
+            <label htmlFor="image">
+              Food Image URL
+            </label>
+
+            <input
+              id="image"
+              name="image"
+              type="url"
+              placeholder="https://example.com/food.jpg"
+              value={formData.image}
+              onChange={handleChange}
+            />
+
+            <small>
+              Paste a publicly accessible image URL.
+            </small>
+          </div>
+
+          <div className="add-food-field">
+            <label htmlFor="restaurantId">
+              Select Restaurant
+            </label>
+
+            <select
+              id="restaurantId"
+              name="restaurantId"
+              value={formData.restaurantId}
+              onChange={handleChange}
+              required
+              disabled={loadingRestaurants}
+            >
+              <option value="">
+                {loadingRestaurants
+                  ? "Loading restaurants..."
+                  : "Choose a restaurant"}
+              </option>
+
+              {restaurants.map((restaurant) => (
+                <option
+                  key={restaurant._id}
+                  value={restaurant._id}
+                >
+                  {restaurant.restaurantName}
+                </option>
+              ))}
+            </select>
+
+            {!loadingRestaurants &&
+              restaurants.length === 0 && (
+                <small>
+                  No restaurants found. Create a restaurant first.
+                </small>
+              )}
           </div>
 
           <button
-            className="cart-close"
-            onClick={onClose}
-            aria-label="Close cart"
+            type="submit"
+            className="add-food-submit"
+            disabled={
+              loading ||
+              loadingRestaurants ||
+              restaurants.length === 0
+            }
           >
-            <i className="fa-solid fa-xmark"></i>
+            {loading
+              ? "Adding Food..."
+              : "Add Food to Menu"}
           </button>
-
-        </div>
-
-        {/* CART CONTENT */}
-        <div className="cart-body">
-
-          {order.length === 0 ? (
-
-            <div className="empty-cart">
-
-              <div className="empty-cart-icon">
-                <i className="fa-solid fa-basket-shopping"></i>
-              </div>
-
-              <h3>Your order is empty</h3>
-
-              <p>
-                You haven't added any food yet.
-                Choose your favourite meal to
-                start your order.
-              </p>
-
-              <button
-                className="continue-shopping"
-                onClick={onClose}
-              >
-                <i className="fa-solid fa-arrow-left"></i>
-
-                Browse Food
-              </button>
-
-            </div>
-
-          ) : (
-
-            <>
-
-              <div className="cart-items">
-
-                {order.map((food, index) => (
-
-                  <div
-                    className="cart-item"
-                    key={`${food.name}-${food.size || "default"}-${index}`}
-                  >
-
-                    {/* IMAGE */}
-                    <div className="cart-item-image">
-
-                      <img
-                        src={food.image}
-                        alt={food.name}
-                      />
-
-                    </div>
-
-                    {/* DETAILS */}
-                    <div className="cart-item-info">
-
-                      <div className="cart-item-top">
-
-                        <div>
-
-                          <h3>
-                            {food.name}
-                          </h3>
-
-                          {food.size && (
-                            <span>
-                              {food.size}
-                            </span>
-                          )}
-
-                        </div>
-
-                        <button
-                          className="remove-item"
-                          onClick={() =>
-                            onRemove(index)
-                          }
-                          aria-label={`Remove ${food.name}`}
-                        >
-                          <i className="fa-solid fa-trash"></i>
-                        </button>
-
-                      </div>
-
-                      {/* QUANTITY */}
-                      <div className="cart-item-bottom">
-
-                        <div className="cart-quantity">
-
-                          <button
-                            onClick={() =>
-                              onUpdateQuantity(
-                                index,
-                                -1
-                              )
-                            }
-                            aria-label="Decrease quantity"
-                          >
-                            <i className="fa-solid fa-minus"></i>
-                          </button>
-
-                          <span>
-                            {food.quantity}
-                          </span>
-
-                          <button
-                            onClick={() =>
-                              onUpdateQuantity(
-                                index,
-                                1
-                              )
-                            }
-                            aria-label="Increase quantity"
-                          >
-                            <i className="fa-solid fa-plus"></i>
-                          </button>
-
-                        </div>
-
-                        <span className="item-count">
-                          {food.quantity}{" "}
-                          {food.quantity === 1
-                            ? "item"
-                            : "items"}
-                        </span>
-
-                      </div>
-
-                    </div>
-
-                  </div>
-
-                ))}
-
-              </div>
-
-              {/* CLEAR ORDER */}
-              <button
-                className="clear-cart"
-                onClick={onClear}
-              >
-                <i className="fa-solid fa-trash-can"></i>
-
-                Clear Order
-              </button>
-
-            </>
-
-          )}
-
-        </div>
-
-        {/* CART FOOTER */}
-        {order.length > 0 && (
-
-          <div className="cart-footer">
-
-            <div className="cart-total">
-
-              <span>
-                Total Food Items
-              </span>
-
-              <strong>
-                {totalItems}
-              </strong>
-
-            </div>
-
-            <button
-              className="checkout-cart-btn"
-              onClick={() => {
-
-                onClose();
-
-                setTimeout(() => {
-
-                  document
-                    .getElementById("checkout")
-                    ?.scrollIntoView({
-                      behavior: "smooth",
-                    });
-
-                }, 100);
-
-              }}
-            >
-
-              Continue to Checkout
-
-              <i className="fa-solid fa-arrow-right"></i>
-
-            </button>
-
-          </div>
-
-        )}
-
-      </aside>
-
-    </div>
+        </form>
+      </div>
+    </main>
   );
 }
 
-export default Cart;
+export default AddFood;
