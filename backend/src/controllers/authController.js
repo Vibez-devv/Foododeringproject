@@ -2,9 +2,10 @@ const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
+// Register a new customer
 const register = async (req, res) => {
   try {
-    const { name, email, password, phone, address, role } = req.body;
+    const { name, email, password, phone, address } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({
@@ -12,7 +13,11 @@ const register = async (req, res) => {
       });
     }
 
-    const existingUser = await User.findOne({ email });
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const existingUser = await User.findOne({
+      email: normalizedEmail,
+    });
 
     if (existingUser) {
       return res.status(400).json({
@@ -22,16 +27,17 @@ const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Public registration can only create customer accounts.
     const user = await User.create({
-      name,
-      email,
+      name: name.trim(),
+      email: normalizedEmail,
       password: hashedPassword,
       phone,
       address,
-      role: role || "customer",
+      role: "customer",
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Registration successful",
       user: {
         id: user._id,
@@ -41,17 +47,34 @@ const register = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({
+    if (error.code === 11000) {
+      return res.status(409).json({
+        message: "An account with this email already exists.",
+      });
+    }
+
+    return res.status(500).json({
       message: error.message,
     });
   }
 };
 
+// Login
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Email and password are required.",
+      });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const user = await User.findOne({
+      email: normalizedEmail,
+    });
 
     if (!user) {
       return res.status(400).json({
@@ -59,7 +82,10 @@ const login = async (req, res) => {
       });
     }
 
-    const passwordMatch = await bcrypt.compare(password, user.password);
+    const passwordMatch = await bcrypt.compare(
+      password,
+      user.password
+    );
 
     if (!passwordMatch) {
       return res.status(400).json({
@@ -75,10 +101,10 @@ const login = async (req, res) => {
       process.env.JWT_SECRET,
       {
         expiresIn: "7d",
-      },
+      }
     );
 
-    res.json({
+    return res.status(200).json({
       message: "Login successful",
       token,
       user: {
@@ -89,12 +115,13 @@ const login = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       message: error.message,
     });
   }
 };
 
+// Get logged-in user's profile
 const profile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
@@ -105,11 +132,11 @@ const profile = async (req, res) => {
       });
     }
 
-    res.json({
+    return res.status(200).json({
       user,
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       message: error.message,
     });
   }

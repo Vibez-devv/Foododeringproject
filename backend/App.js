@@ -7,7 +7,7 @@ const restaurantRoute = require("./src/routes/restaurantRoute");
 const paymentRoute = require("./src/routes/paymentRoute");
 const orderRoute = require("./src/routes/orderRoute");
 const reviewRoute = require("./src/routes/reviewRoute");
-
+const adminRoute = require("./src/routes/adminRoute");
 const app = express();
 
 // Allowed frontend origins
@@ -48,5 +48,6 @@ app.use("/api/restaurant", restaurantRoute);
 app.use("/api/payment", paymentRoute);
 app.use("/api/orders", orderRoute);
 app.use("/api/reviews", reviewRoute);
+app.use("/api/admin", adminRoute);
 
 module.exports = app;

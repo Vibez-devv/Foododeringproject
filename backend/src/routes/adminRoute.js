@@ -1,13 +1,15 @@
 const express = require("express");
 
+const protect = require("../middleware/auth");
+const adminOnly = require("../middleware/adminOnly");
+
 const {
-  register,
-  login,
-} = require("../controllers/authController");
+  getDashboardStats,
+} = require("../controllers/adminController");
 
 const router = express.Router();
 
-router.post("/register", register);
-router.post("/login", login);
+// Only authenticated administrators can access dashboard statistics.
+router.get("/dashboard", protect, adminOnly, getDashboardStats);
 
 module.exports = router;
